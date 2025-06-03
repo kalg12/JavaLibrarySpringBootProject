@@ -26,4 +26,23 @@ public class LibroService {
     public List<Libro> listarTodos() {
         return libroRepository.findAll();
     }
+
+    // Actualizar un libro existente
+    public Libro actualizar(Long id, Libro libroActualizado) {
+        return libroRepository.findById(id).map(libro -> {
+            libro.setTitulo(libroActualizado.getTitulo());
+            libro.setAutor(libroActualizado.getAutor());
+            libro.setAnioPublicacion(libroActualizado.getAnioPublicacion());
+        return libroRepository.save(libro);
+    }).orElse(null);
+}
+
+    // Eliminar un libro por ID
+    public boolean eliminar(Long id) {
+        if (libroRepository.existsById(id)) {
+            libroRepository.deleteById(id);
+            return true;
+        }
+        return false;
+    }
 }
