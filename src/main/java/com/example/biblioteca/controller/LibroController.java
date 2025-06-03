@@ -2,8 +2,10 @@ package com.example.biblioteca.controller;
 
 import com.example.biblioteca.model.Libro;
 import com.example.biblioteca.service.LibroService;
-import org.springframework.web.bind.annotation.*;
+import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
+import org.springframework.validation.BindingResult;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
@@ -15,17 +17,30 @@ public class LibroController {
 
     public LibroController(LibroService libroService) {
         this.libroService = libroService;
-        System.out.println("Se ha echo una consulta en la API, by Kevin");
+        System.out.println("Se ha hecho una consulta en la API, by Kevin");
     }
 
     @PostMapping
-    public Libro crearLibro(@RequestBody Libro libro) {
-        return libroService.guardar(libro);
+    public ResponseEntity<?> crearLibro(@Valid @RequestBody Libro libro, BindingResult result) {
+        if (result.hasErrors()) {
+            return ResponseEntity.badRequest().body(result.getAllErrors());
+        }
+        try {
+            Libro guardado = libroService.guardar(libro);
+            return ResponseEntity.ok(guardado);
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
+        }
     }
 
     @GetMapping("/{id}")
-    public Libro obtenerLibro(@PathVariable Long id) {
-        return libroService.obtenerPorId(id);
+    public ResponseEntity<?> obtenerLibro(@PathVariable Long id) {
+        Libro libro = libroService.obtenerPorId(id);
+        if (libro != null) {
+            return ResponseEntity.ok(libro);
+        } else {
+            return ResponseEntity.notFound().build();
+        }
     }
 
     @GetMapping
@@ -33,25 +48,31 @@ public class LibroController {
         return libroService.listarTodos();
     }
 
-    // PUT - Actualizar libro por ID
     @PutMapping("/{id}")
-    public ResponseEntity<Libro> actualizarLibro(@PathVariable Long id, @RequestBody Libro libro) {
-        Libro actualizado = libroService.actualizar(id, libro);
-        if (actualizado != null) {
-            return ResponseEntity.ok(actualizado);
-        } else {
-            return ResponseEntity.notFound().build();
+    public ResponseEntity<?> actualizarLibro(@PathVariable Long id, @Valid @RequestBody Libro libro, BindingResult result) {
+        if (result.hasErrors()) {
+            return ResponseEntity.badRequest().body(result.getAllErrors());
+        }
+
+        try {
+            Libro actualizado = libroService.actualizar(id, libro);
+            if (actualizado != null) {
+                return ResponseEntity.ok(actualizado);
+            } else {
+                return ResponseEntity.notFound().build();
+            }
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
         }
     }
 
-    // DELETE - Eliminar libro por ID
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> eliminarLibro(@PathVariable Long id) {
         boolean eliminado = libroService.eliminar(id);
         if (eliminado) {
-            return ResponseEntity.noContent().build(); // 204
+            return ResponseEntity.noContent().build();
         } else {
-            return ResponseEntity.notFound().build(); // 404
+            return ResponseEntity.notFound().build();
         }
     }
 }
