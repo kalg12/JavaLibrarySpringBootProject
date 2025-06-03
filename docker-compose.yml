@@ -1,0 +1,11 @@
+version: "3.1"
+services:
+  postgres:
+    image: postgres
+    container_name: postgres-biblioteca
+    environment:
+      POSTGRES_DB: biblioteca
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: password
+    ports:
+      - "5433:5432"
